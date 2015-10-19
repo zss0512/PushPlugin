@@ -1,6 +1,6 @@
-window.aiXinPushServer = {
+window.PushPlugin = {
 	registeAixinPush: function(successCallback, errorCallback) {
-		cordova.execute(successCallback, errorCallback, "aiXinPushServer", "registePush", []);
+		cordova.execute(successCallback, errorCallback, "PushPlugin", "registePush", []);
 	},
 }
-module.exports = aiXinPushServer;
+module.exports = PushPlugin;
