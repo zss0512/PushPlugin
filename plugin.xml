@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" id="ax.aixintui.plugin" version="1.0.0">
+    <name>AiXinPush</name>
+    <description>aixintui</description>
+    <license>MIT</license>
+    <keywords>aixintui</keywords>
+    
+ 
+    <!-- android -->
+    <platform name="android">
+        <js-module src="www/aixinpush.js" name="AiXinPush">
+        <clobbers target="window.aiXinPushServer" />
+        </js-module>
+ 
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="aiXinPushServer">
+                <param name="android-package" value="ax.aixintui.plugin.AiXinPush"/>
+            </feature>
+        </config-file> 
+        
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+			<uses-permission android:name="android.permission.GET_TASKS" />
+			<uses-permission android:name="android.permission.INTERNET" />
+			<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+			<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+			<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+			<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+			<uses-permission android:name="android.permission.VIBRATE" />
+			<uses-permission android:name="android.permission.WAKE_LOCK" />
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<receiver android:name="ax.aixintui.plugin.PushReceiver" >
+				<intent-filter>
+
+					<!-- 接收透传消息 -->
+					<action android:name="com.ixintui.action.MESSAGE" />
+					<!-- 接收register, add tag等反馈消息 -->
+					<action android:name="com.ixintui.action.RESULT" />
+					<!-- 接收notification click消息 -->
+					<action android:name="com.ixintui.action.notification.CLICK" />
+					<!-- 接收自定义notification click消息 -->
+					<action android:name="com.action.notif.CLICK" />
+				</intent-filter>
+			</receiver>
+		</config-file>
+		 <config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<receiver android:name="com.ixintui.push.Receiver" >
+				<intent-filter>
+					<action android:name="com.ixintui.action.BROADCAST" />
+				</intent-filter>
+				<intent-filter>
+					<action android:name="android.intent.action.PACKAGE_REMOVED" />
+
+					<data android:scheme="package" />
+				</intent-filter>
+				<intent-filter>
+					<action android:name="android.intent.action.BOOT_COMPLETED" />
+					<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+				</intent-filter>
+        </receiver>
+		
+		</config-file>
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<activity
+            android:name="com.ixintui.push.PushActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+				<intent-filter>
+					<action android:name="com.ixintui.push.PushActivity" />
+
+					<category android:name="android.intent.category.DEFAULT" />
+				</intent-filter>
+			</activity>
+		</config-file>
+		
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<service
+				android:name="ax.aixintui.plugin.NotifService"
+				android:exported="true" >
+			</service>
+		</config-file>
+		
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<service
+				android:name="com.ixintui.push.PushService"
+				android:exported="true"
+				android:process=":ixintui_service_v1" >
+			</service>
+		</config-file>
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<service
+				android:name="com.ixintui.push.MediateService"
+				android:exported="true" >
+			</service>
+		</config-file>
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<provider
+            android:name="com.ixintui.push.Provider"
+            android:authorities="ax.aixintui.plugin.ixintui.push.provider"
+            android:exported="false"
+            android:multiprocess="true" />
+		</config-file>
+		<config-file target="AndroidManifest.xml" parent="/manifest/application">
+			<receiver android:name="com.ixintui.push.Receiver" >
+				<intent-filter>
+					<action android:name="com.ixintui.action.BROADCAST" />
+				</intent-filter>
+				<intent-filter>
+					<action android:name="android.intent.action.PACKAGE_REMOVED" />
+
+					<data android:scheme="package" />
+				</intent-filter>
+				<intent-filter>
+					<action android:name="android.intent.action.BOOT_COMPLETED" />
+					<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+				</intent-filter>
+			</receiver>
+		</config-file>
+        <source-file src="src/android/AiXinPush.java" target-dir="src/ax/aixintui/plugin" />   
+		<source-file src="src/android/NotifService.java" target-dir="src/ax/aixintui/plugin" />   
+		<source-file src="src/android/PushReceiver.java" target-dir="src/ax/aixintui/plugin" />   
+		
+		<source-file src="src/android/ixintui_custom_notification.xml" target-dir="res/layout" />  
+		<source-file src="src/android/ixintui_push_download.xml" target-dir="res/layout" />  
+		
+		
+        
+		
+		<source-file src="src/android/ixintui_pushsdk_v1.7.0.2.jar" target-dir="libs" framework="true"/>      
+      
+      
+    </platform> 
+
+</platform>
+
+	<!-- ios -->
+	<platform name="ios">
+		<js-module src="www/aixinpush.js" name="PushPlugin">
+        <clobbers target="window.aiXinPushServer" />
+        </js-module>
+		
+		<config-file target="config.xml" parent="/*">
+			<feature name="aiXinPushServer">
+				<param name="ios-package" value="PushPlugin"/>
+			</feature>
+		</config-file>
+
+		<header-file src="src/ios/AppDelegate+notification.h" />
+		<source-file src="src/ios/AppDelegate+notification.m" />
+
+		<header-file src="src/ios/PushPlugin.h" />
+		<source-file src="src/ios/PushPlugin.m" />
+
+		<header-file src="src/ios/HttpDelegate.h" />
+		<source-file src="src/ios/HttpDelegate.m" />
+
+		<header-file src="src/ios/IXTNotification.h" />
+		<source-file src="src/ios/IXTNotification.m" />
+
+		<header-file src="src/ios/NSStringHelper.h" />
+		<source-file src="src/ios/NSStringHelper.m" />	
+
+	</platform>        
+</plugin>
