@@ -5,15 +5,14 @@
     <description>aixintui</description>
     <license>MIT</license>
     <keywords>aixintui</keywords>
-    
+    	<js-module src="www/aixinpush.js" name="PushPlugin">
+        <clobbers target="window.PushPlugin" />
+        </js-module>
  
     
 
 	<!-- ios -->
 	<platform name="ios">
-		<js-module src="www/aixinpush.js" name="PushPlugin">
-        <clobbers target="window.PushPlugin" />
-        </js-module>
 		
 		<config-file target="config.xml" parent="/*">
 			<feature name="PushPlugin">
@@ -23,16 +22,12 @@
 
 		<header-file src="src/ios/AppDelegate+notification.h" />
 		<source-file src="src/ios/AppDelegate+notification.m" />
-
 		<header-file src="src/ios/PushPlugin.h" />
 		<source-file src="src/ios/PushPlugin.m" />
-
 		<header-file src="src/ios/HttpDelegate.h" />
 		<source-file src="src/ios/HttpDelegate.m" />
-
 		<header-file src="src/ios/IXTNotification.h" />
 		<source-file src="src/ios/IXTNotification.m" />
-
 		<header-file src="src/ios/NSStringHelper.h" />
 		<source-file src="src/ios/NSStringHelper.m" />	
 
