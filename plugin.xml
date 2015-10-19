@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
  
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" id="ax.aixintui.plugin" version="1.0.0">
-    <name>AiXinPush</name>
+    <name>PushPlugin</name>
     <description>This is a plugin for handling push notifications on iOS and Android devices.</description>
     <license>MIT</license>
     <keywords>aixintui</keywords>
@@ -18,7 +18,7 @@
 	<platform name="ios">
 		
 		<config-file target="config.xml" parent="/*">
-			<feature name="AiXinPush">
+			<feature name="PushPlugin">
 				<param name="ios-package" value="PushPlugin"/>
 			</feature>
 		</config-file>
