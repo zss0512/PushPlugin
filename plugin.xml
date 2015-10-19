@@ -6,7 +6,9 @@
     <license>MIT</license>
     <keywords>aixintui</keywords>
 
-	<asset src="www/aixinpush.js" target="aixinpush.js" />
+	<js-module src="www/aixinpush.js" name="PushPlugin">
+        <clobbers target="window.aiXinPushServer" />
+        </js-module>
 
 	<engines>
 		<engine name="cordova" version=">=3.0.0" />
