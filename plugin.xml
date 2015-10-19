@@ -12,7 +12,7 @@
 	<!-- ios -->
 	<platform name="ios">
 		<js-module src="www/aixinpush.js" name="PushPlugin">
-        <clobbers target="window.aiXinPushServer" />
+        <clobbers target="window.PushPlugin" />
         </js-module>
 		
 		<config-file target="config.xml" parent="/*">
