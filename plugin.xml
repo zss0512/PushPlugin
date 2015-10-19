@@ -2,14 +2,15 @@
  
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" id="ax.aixintui.plugin" version="1.0.0">
     <name>AiXinPush</name>
-    <description>aixintui</description>
+    <description>This is a plugin for handling push notifications on iOS and Android devices.</description>
     <license>MIT</license>
     <keywords>aixintui</keywords>
-    	<js-module src="www/aixinpush.js" name="PushPlugin">
-        <clobbers target="window.PushPlugin" />
-        </js-module>
- 
-    
+
+	<asset src="www/aixinpush.js" target="aixinpush.js" />
+
+	<engines>
+		<engine name="cordova" version=">=3.0.0" />
+	</engines>	
 
 	<!-- ios -->
 	<platform name="ios">
