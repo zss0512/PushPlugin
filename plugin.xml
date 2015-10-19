@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
  
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" id="ax.aixintui.plugin" version="1.0.0">
-    <name>PushPlugin</name>
+    <name>AiXinPush</name>
     <description>This is a plugin for handling push notifications on iOS and Android devices.</description>
     <license>MIT</license>
     <keywords>aixintui</keywords>
@@ -9,10 +9,6 @@
 	<js-module src="www/aixinpush.js" name="PushPlugin">
         <clobbers target="window.aiXinPushServer" />
         </js-module>
-
-	<engines>
-		<engine name="cordova" version=">=3.0.0" />
-	</engines>	
 
 	<!-- ios -->
 	<platform name="ios">
