@@ -39,7 +39,7 @@
 @synthesize callback;
 
 
-- (void)unregister:(CDVInvokedUrlCommand*)command;
+- (void)unregistePush:(CDVInvokedUrlCommand*)command;
 {
 	self.callbackId = command.callbackId;
 
@@ -47,9 +47,10 @@
     [self successWithMessage:@"unregistered"];
 }
 
-- (void)register:(CDVInvokedUrlCommand*)command;
+- (void)registePush:(CDVInvokedUrlCommand*)command;
 {
 	self.callbackId = command.callbackId;
+	NSLog(@"%@",callbackId);
 
     NSMutableDictionary* options = [command.arguments objectAtIndex:0];
 
