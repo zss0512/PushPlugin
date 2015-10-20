@@ -129,7 +129,7 @@
     NSString *resultString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     NSLog(@"注册通知后返回给js的字符串：%@",resultString);
 
-    [self successWithMessage:[NSString stringWithFormat:@"registePush(%@)",resultString]];
+    [self successWithMessage:[NSString stringWithFormat:@"%@",resultString]];
 }
 
 - (void)didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
