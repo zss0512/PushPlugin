@@ -11,14 +11,8 @@
 #import <objc/runtime.h>
 #import "IXTNotification.h"
 
-static char launchNotificationKey;
 
 @implementation AppDelegate (notification)
-
-- (id) getCommandInstance:(NSString*)className
-{
-	return [self.viewController getCommandInstance:className];
-}
 
 // its dangerous to override a method from within a category.
 // Instead we will use method swizzling. we set this up in the load call.
@@ -53,17 +47,12 @@ static char launchNotificationKey;
         [[UIApplication sharedApplication] registerForRemoteNotificationTypes: UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound];
     }
     NSLog(@"createNotificationChecker");
-	if (notification)
-	{
-		NSDictionary *launchOptions = [notification userInfo];
-		if (launchOptions)
-			self.launchNotification = [launchOptions objectForKey: @"UIApplicationLaunchOptionsRemoteNotificationKey"];
-	}
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-    PushPlugin *pushHandler = [self getCommandInstance:@"PushPlugin"];
-    [pushHandler didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+    NSUserDefaults *userToken=[NSUserDefaults standardUserDefaults];
+    [userToken setValue:deviceToken forKey:@"deviceToken"];
+    [userToken synchronize];//把数据同步到本地
 }
 
 - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings
@@ -73,13 +62,14 @@ static char launchNotificationKey;
 
 - (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
     NSLog(@"Failed To Register For RemoteNotifications:%@",error);    
-    PushPlugin *pushHandler = [self getCommandInstance:@"PushPlugin"];
-    [pushHandler didFailToRegisterForRemoteNotificationsWithError:error];
 }
 
 //点击某条远程通知时调用的委托 如果界面处于打开状态,那么此委托会直接响应
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
     NSLog(@"didReceiveNotification");
+    NSString *classType = [userInfo objectForKey:@"classType"];
+    NSString *detailId = [userInfo objectForKey:@"detailId"];
+    NSString *loadPage = [NSString stringWithFormat:@"index.html?%@%@",classType,detailId];
     // Get application state for iOS4.x+ devices, otherwise assume active
     UIApplicationState appState = UIApplicationStateActive;
     if ([application respondsToSelector:@selector(applicationState)]) {
@@ -87,16 +77,10 @@ static char launchNotificationKey;
     }
     
     if (appState == UIApplicationStateActive) {
-        PushPlugin *pushHandler = [self getCommandInstance:@"PushPlugin"];
-        pushHandler.notificationMessage = userInfo;
-        pushHandler.isInline = YES;
-        [pushHandler notificationReceived];
+        self.viewController.startPage = loadPage;
     } else {
         //send it to JS
-        self.launchNotification = userInfo;
-        PushPlugin *pushHandler = [self getCommandInstance:@"PushPlugin"];
-        pushHandler.notificationMessage = userInfo;
-        [pushHandler notificationReceived];
+        //self.launchNotification = userInfo;
     }
 }
 //程序运行在前台，处理IconBadgeNumber值设为0
@@ -107,30 +91,8 @@ static char launchNotificationKey;
     //zero badge
     application.applicationIconBadgeNumber = 0;
 
-    if (![self.viewController.webView isLoading] && self.launchNotification) {
-        PushPlugin *pushHandler = [self getCommandInstance:@"PushPlugin"];
-		
-        pushHandler.notificationMessage = self.launchNotification;
-        self.launchNotification = nil;
-        [pushHandler performSelectorOnMainThread:@selector(notificationReceived) withObject:pushHandler waitUntilDone:NO];
-    }
 }
 
-// The accessors use an Associative Reference since you can't define a iVar in a category
-// http://developer.apple.com/library/ios/#documentation/cocoa/conceptual/objectivec/Chapters/ocAssociativeReferences.html
-- (NSMutableArray *)launchNotification
-{
-   return objc_getAssociatedObject(self, &launchNotificationKey);
-}
 
-- (void)setLaunchNotification:(NSDictionary *)aDictionary
-{
-    objc_setAssociatedObject(self, &launchNotificationKey, aDictionary, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (void)dealloc
-{
-    self.launchNotification	= nil; // clear the association and release the object
-}
 
 @end
