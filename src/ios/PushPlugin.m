@@ -31,11 +31,8 @@
 
 @implementation PushPlugin
 
-@synthesize notificationMessage;
-@synthesize isInline;
 
 @synthesize callbackId;
-@synthesize notificationCallbackId;
 @synthesize callback;
 
 
@@ -51,65 +48,20 @@
 {
 	self.callbackId = command.callbackId;
 	NSLog(@"%@",callbackId);
-
-    NSMutableDictionary* options = [command.arguments objectAtIndex:0];
-
-    UIRemoteNotificationType notificationTypes = UIRemoteNotificationTypeNone;
+    NSUserDefaults *userDefault=[NSUserDefaults standardUserDefaults];
+    NSData *token=[userDefault objectForKey:@"deviceToken"];
+    NSLog(@"%@",token);
     
-    id badgeArg = [options objectForKey:@"badge"];
-    id soundArg = [options objectForKey:@"sound"];
-    id alertArg = [options objectForKey:@"alert"];
-    
-    if ([badgeArg isKindOfClass:[NSString class]])
-    {
-        if ([badgeArg isEqualToString:@"true"])
-            notificationTypes |= UIRemoteNotificationTypeBadge;
-    }
-    else if ([badgeArg boolValue])
-        notificationTypes |= UIRemoteNotificationTypeBadge;
-    
-    if ([soundArg isKindOfClass:[NSString class]])
-    {
-        if ([soundArg isEqualToString:@"true"])
-            notificationTypes |= UIRemoteNotificationTypeSound;
-    }
-    else if ([soundArg boolValue])
-        notificationTypes |= UIRemoteNotificationTypeSound;
-    
-    if ([alertArg isKindOfClass:[NSString class]])
-    {
-        if ([alertArg isEqualToString:@"true"])
-            notificationTypes |= UIRemoteNotificationTypeAlert;
-    }
-    else if ([alertArg boolValue])
-        notificationTypes |= UIRemoteNotificationTypeAlert;
-    
-    self.callback = [options objectForKey:@"ecb"];
-
-    if (notificationTypes == UIRemoteNotificationTypeNone)
-        NSLog(@"PushPlugin.register: Push notification type is set to none");
-
-    isInline = NO;
-
-    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:notificationTypes];
-    
-	
-	if (notificationMessage)			// if there is a pending startup notification
-		[self notificationReceived];	// go ahead and process it
-}
-
-- (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-
     NSLog(@"is registing push from ixintui");
     NSString *plistPath = [[NSBundle mainBundle]pathForResource:@"PushConfig" ofType:@"plist"];
     NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:plistPath];
     NSString *iappKey = [data objectForKey:@"AppKey"];
     NSString *isecretkey = [data objectForKey:@"SecretKey"];
     NSLog(@"%@,%@",iappKey,isecretkey);
-    IXTNotification *ixtNotification = [[IXTNotification alloc] init: (iappKey).intValue andToken:deviceToken delegate:nil];
+    IXTNotification *ixtNotification = [[IXTNotification alloc] init: (iappKey).intValue andToken:token delegate:nil];
     //delegate是http的回调,可参照HttpDelegate.h实现
     BOOL flag = [ixtNotification register:isecretkey flag:true];
-    NSString *pushToken = [[[[deviceToken description]
+    NSString *pushToken = [[[[token description]
                              
                              stringByReplacingOccurrencesOfString:@"<" withString:@""]
                             
@@ -129,50 +81,9 @@
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:resultToken options:NSJSONWritingPrettyPrinted error:nil];
     NSString *resultString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
     NSLog(@"注册通知后返回给js的字符串：%@",resultString);
-
+    
     [self successWithMessage:[NSString stringWithFormat:@"%@",resultString]];
-}
-
-- (void)didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
-{
-    [self failWithMessage:@"" withError:error];
-}
-//通知的点击处理
-- (void)notificationReceived {
-    NSLog(@"Notification received");
-
-    if (notificationMessage && self.callback)
-    {
-        NSError *error;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:[notificationMessage objectForKey:@"type"]
-                                                           options:0
-                                                             error:&error];
-        
-        if (!jsonData) {
-            NSLog(@"Error parsing the notification message: %@", error);
-        } else {
-            NSString * jsCallBack = [NSString stringWithFormat:@"%@", self.notificationMessage];
-            [self.webView stringByEvaluatingJavaScriptFromString:jsCallBack];//发送jsCallBack字符串到JavaScript的并取得返回值，显示在webView
-        }
-        
-        self.notificationMessage = nil;
-    }
-    else{
-        NSLog(@"An error was encountered processing the notification\nNotificationMessage: %@\nCallback: %@", notificationMessage, self.callback);
-    }
-}
-
-- (void)setApplicationIconBadgeNumber:(CDVInvokedUrlCommand*)command; {
-  DLog(@"setApplicationIconBadgeNumber:%@\n", command.arguments);
-    
-    self.callbackId = command.callbackId;
-    
-    NSMutableDictionary* options = [command.arguments objectAtIndex:0];
-    
-    int badge = [[options objectForKey:@"badge"] intValue] ?: 0;
-    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:badge];
-    
-    [self successWithMessage:[NSString stringWithFormat:@"app badge count set to %d", badge]];
+	
 }
 
 -(void)successWithMessage:(NSString *)message
