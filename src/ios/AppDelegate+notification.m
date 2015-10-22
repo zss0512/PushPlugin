@@ -56,6 +56,7 @@
     NSLog(@"%@,%@",iappKey,isecretkey);
     IXTNotification *ixtNotification = [[IXTNotification alloc] init: (iappKey).intValue andToken:deviceToken delegate:nil];
     BOOL flag = [ixtNotification register:isecretkey flag:true];
+    NSLog(@"%@,%d",deviceToken,flag);
     //delegate是http的回调,可参照HttpDelegate.h实现
     NSUserDefaults *userToken=[NSUserDefaults standardUserDefaults];
     [userToken setValue:deviceToken forKey:@"deviceToken"];
