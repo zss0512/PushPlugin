@@ -28,20 +28,9 @@
 #import <Cordova/CDVPlugin.h>
 
 @interface PushPlugin : CDVPlugin
-{
-
-    NSString *callback;
-    
-    BOOL ready;
-}
 
 @property (nonatomic, copy) NSString *callbackId;
 
-@property (nonatomic, copy) NSString *callback;
-
-
 - (void)registePush:(CDVInvokedUrlCommand*)command;
-
--(void)successWithMessage:(NSString *)message;
 
 @end
