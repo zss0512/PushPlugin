@@ -31,10 +31,7 @@
 
 @implementation PushPlugin
 
-
 @synthesize callbackId;
-@synthesize callback;
-
 
 - (void)unregistePush:(CDVInvokedUrlCommand*)command;
 {
