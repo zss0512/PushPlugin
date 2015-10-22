@@ -11,7 +11,6 @@
 #import <objc/runtime.h>
 #import "IXTNotification.h"
 
-
 @implementation AppDelegate (notification)
 
 // its dangerous to override a method from within a category.
@@ -50,6 +49,14 @@
 }
 
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+    NSString *plistPath = [[NSBundle mainBundle]pathForResource:@"PushConfig" ofType:@"plist"];
+    NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:plistPath];
+    NSString *iappKey = [data objectForKey:@"AppKey"];
+    NSString *isecretkey = [data objectForKey:@"SecretKey"];
+    NSLog(@"%@,%@",iappKey,isecretkey);
+    IXTNotification *ixtNotification = [[IXTNotification alloc] init: (iappKey).intValue andToken:deviceToken delegate:nil];
+    BOOL flag = [ixtNotification register:isecretkey flag:true];
+    //delegate是http的回调,可参照HttpDelegate.h实现
     NSUserDefaults *userToken=[NSUserDefaults standardUserDefaults];
     [userToken setValue:deviceToken forKey:@"deviceToken"];
     [userToken synchronize];//把数据同步到本地
@@ -66,6 +73,7 @@
 
 //点击某条远程通知时调用的委托 如果界面处于打开状态,那么此委托会直接响应
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
+
     NSLog(@"didReceiveNotification");
     NSString *classType = [userInfo objectForKey:@"classType"];
     NSString *detailId = [userInfo objectForKey:@"detailId"];
@@ -81,18 +89,17 @@
     } else {
         //send it to JS
         //self.launchNotification = userInfo;
+        //self.viewController.startPage = loadPage;
     }
 }
 //程序运行在前台，处理IconBadgeNumber值设为0
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     
     NSLog(@"active");
-    
+
     //zero badge
-    application.applicationIconBadgeNumber = 0;
+    //application.applicationIconBadgeNumber = 0;
 
 }
-
-
 
 @end
