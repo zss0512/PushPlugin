@@ -72,26 +72,51 @@
     NSLog(@"Failed To Register For RemoteNotifications:%@",error);    
 }
 
-//点击某条远程通知时调用的委托 如果界面处于打开状态,那么此委托会直接响应
+//当应用在前台运行中，收到远程通知时，会回调这个方法。
+//当应用在后台状态时，点击push消息启动应用，也会回调这个方法。
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo {
 
-    NSLog(@"didReceiveNotification");
-    NSString *classType = [userInfo objectForKey:@"classType"];
-    NSString *detailId = [userInfo objectForKey:@"detailId"];
+//    NSLog(@"didReceiveNotification");
+//    NSLog(@"%@",userInfo);
+//    NSString *classType = [userInfo objectForKey:@"classType"];
+//    NSString *detailId = [userInfo objectForKey:@"detailId"];
+//    NSString *loadPage = [NSString stringWithFormat:@"index.html?%@%@",classType,detailId];
+//    // Get application state for iOS4.x+ devices, otherwise assume active
+//    UIApplicationState appState = UIApplicationStateActive;
+//    if ([application respondsToSelector:@selector(applicationState)]) {
+//        appState = application.applicationState;
+//    }
+//    
+//    if (appState == UIApplicationStateActive) {
+//        self.viewController.startPage = loadPage;
+//    } else {
+//        //send it to JS
+//        //self.launchNotification = userInfo;
+//        //self.viewController.startPage = loadPage;
+//    }
+    NSLog(@"remote notification: %@",[userInfo description]);
+    NSString* alertStr = nil;
+    NSDictionary *apsInfo = [userInfo objectForKey:@"aps"];
+    NSObject *alert = [apsInfo objectForKey:@"alert"];
+    if ([alert isKindOfClass:[NSString class]])
+    {
+        alertStr = (NSString*)alert;
+    }
+    else if ([alert isKindOfClass:[NSDictionary class]])
+    {
+        NSDictionary* alertDict = (NSDictionary*)alert;
+        alertStr = [alertDict objectForKey:@"body"];
+    }
+    application.applicationIconBadgeNumber = [[apsInfo objectForKey:@"badge"] integerValue];
+    if ([application applicationState] == UIApplicationStateActive && alertStr != nil)
+    {
+        UIAlertView* alertView = [[UIAlertView alloc] initWithTitle:@"Pushed Message" message:alertStr delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alertView show];
+    }
+    NSString *classType = [userInfo objectForKey:@"classtype"];
+    NSString *detailId = [userInfo objectForKey:@"id"];
     NSString *loadPage = [NSString stringWithFormat:@"index.html?%@%@",classType,detailId];
-    // Get application state for iOS4.x+ devices, otherwise assume active
-    UIApplicationState appState = UIApplicationStateActive;
-    if ([application respondsToSelector:@selector(applicationState)]) {
-        appState = application.applicationState;
-    }
-    
-    if (appState == UIApplicationStateActive) {
-        self.viewController.startPage = loadPage;
-    } else {
-        //send it to JS
-        //self.launchNotification = userInfo;
-        //self.viewController.startPage = loadPage;
-    }
+    self.viewController.startPage = loadPage;
 }
 //程序运行在前台，处理IconBadgeNumber值设为0
 - (void)applicationDidBecomeActive:(UIApplication *)application {
