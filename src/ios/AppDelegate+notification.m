@@ -105,7 +105,7 @@
     else if ([alert isKindOfClass:[NSDictionary class]])
     {
         NSDictionary* alertDict = (NSDictionary*)alert;
-        alertStr = [alertDict objectForKey:@"body"];
+        alertStr = [alertDict objectForKey:@"message"];
     }
     application.applicationIconBadgeNumber = [[apsInfo objectForKey:@"badge"] integerValue];
     if ([application applicationState] == UIApplicationStateActive && alertStr != nil)
