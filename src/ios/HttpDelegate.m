@@ -35,7 +35,7 @@
     if(status == 200){
         NSLog(@"succ");
     }else{
-        NSLog(@"status=%d",status);
+        NSLog(@"status=%ld",(long)status);
     }
 }
 //触发次数 >= 1
