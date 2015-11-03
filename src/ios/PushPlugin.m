@@ -87,6 +87,18 @@
                 UIAlertView*alertView = [[UIAlertView alloc]initWithTitle:@"最新资讯" message:alertStr delegate:self cancelButtonTitle:@"忽略" otherButtonTitles:@"查看", nil];
                 alertView.tag = 2;
                 [alertView show];
+            }else{
+                NSMutableDictionary *pushClick = [NSMutableDictionary dictionary];
+                NSString *classType = [extra_dic objectForKey:@"classtype"];
+                NSString *detailId = [extra_dic objectForKey:@"id"];
+                [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
+                [pushClick setValue:@"notifyclick" forKey:@"type"];
+                [pushClick setValue:classType forKey:@"classType"];
+                [pushClick setValue:detailId forKey:@"detailId"];
+                
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:pushClick options:NSJSONWritingPrettyPrinted error:nil];
+                NSString *stringClick = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                [self successWithMessage:[NSString stringWithFormat:@"%@",stringClick]];
             }
         }
     }
