@@ -18,6 +18,7 @@
 @synthesize callback;
 @synthesize callbackId;
 @synthesize notificationMessage;
+@synthesize extra_dic;
 
 
 - (CDVPlugin*)initWithWebView:(UIWebView*)theWebView{
@@ -40,7 +41,7 @@
  */
 - (void)networkDidReceiveNotification:(NSNotification *)notification{
     NSDictionary *object = [notification object];
-    NSDictionary *extra_dic = nil;//extra的内容
+    //NSDictionary *extra_dic = nil;//extra的内容
     NSString *type = nil;
     //解析extra的jason字符串
     NSString *jsonString = [object objectForKey:@"extra"];
@@ -75,26 +76,19 @@
 //            
 //        });
         [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
-        NSMutableDictionary *pushClick = [NSMutableDictionary dictionary];
+        
         //如果点击的是下线通知
         if ([[extra_dic objectForKey:@"type"] isEqualToString:@"promit"]) {
             UIAlertView*alertView = [[UIAlertView alloc]initWithTitle:@"下线通知" message:alertStr delegate:self cancelButtonTitle:@"退出" otherButtonTitles:@"重新登陆", nil];
             alertView.tag = 1;
             [alertView show];
         }else{
-            NSString *classType = [extra_dic objectForKey:@"classtype"];
-            NSString *detailId = [extra_dic objectForKey:@"id"];
-            [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
-            [pushClick setValue:@"notifyclick" forKey:@"type"];
-            [pushClick setValue:classType forKey:@"classType"];
-            [pushClick setValue:detailId forKey:@"detailId"];
-            
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:pushClick options:NSJSONWritingPrettyPrinted error:nil];
-            NSString *stringClick = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            [self successWithMessage:[NSString stringWithFormat:@"%@",stringClick]];
-            
+            if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
+                UIAlertView*alertView = [[UIAlertView alloc]initWithTitle:@"最新资讯" message:alertStr delegate:self cancelButtonTitle:@"忽略" otherButtonTitles:@"查看", nil];
+                alertView.tag = 2;
+                [alertView show];
+            }
         }
-
     }
 }
 
@@ -125,6 +119,22 @@
             NSString *stringClick = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             [self successWithMessage:[NSString stringWithFormat:@"%@",stringClick]];
         }
+    }
+    if (alertView.tag == 2) {
+        if (buttonIndex == 1) {
+            NSMutableDictionary *pushClick = [NSMutableDictionary dictionary];
+            NSString *classType = [extra_dic objectForKey:@"classtype"];
+            NSString *detailId = [extra_dic objectForKey:@"id"];
+            [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
+            [pushClick setValue:@"notifyclick" forKey:@"type"];
+            [pushClick setValue:classType forKey:@"classType"];
+            [pushClick setValue:detailId forKey:@"detailId"];
+            
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:pushClick options:NSJSONWritingPrettyPrinted error:nil];
+            NSString *stringClick = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            [self successWithMessage:[NSString stringWithFormat:@"%@",stringClick]];
+        }
+        
     }
     
 }
