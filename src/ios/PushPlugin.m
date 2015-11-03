@@ -24,90 +24,109 @@
     if (self=[super initWithWebView:theWebView]) {
         
         NSNotificationCenter *defaultCenter = [NSNotificationCenter defaultCenter];
-//        [defaultCenter addObserver:self
-//                          selector:@selector(networkDidReceiveMessage:)
-//                              name:kJPFNetworkDidReceiveMessageNotification
-//                            object:nil];
-        
+        //监听一个通知，当收到通知时，调用networkDidReceiveNotification方法
         [defaultCenter addObserver:self
                           selector:@selector(networkDidReceiveNotification:)
                               name:iPushPluginReceiveNotificaiton
                             object:nil];
-        
     }
     return self;
 }
-//- (void)networkDidReceiveMessage:(NSNotification *)notification {
-//    
-//    NSDictionary *userInfo = [notification userInfo];
-//    NSLog(@"%@",userInfo);
-//    
-//    NSError  *error;
-//    NSData   *jsonData   = [NSJSONSerialization dataWithJSONObject:userInfo options:0 error:&error];
-//    NSString *jsonString = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
-//    
-//    NSLog(@"%@",jsonString);
-//    
-//    dispatch_async(dispatch_get_main_queue(), ^{
-//        
-//        [self writeJavascript:[NSString stringWithFormat:@"window.aiXinPushServer.registeAixinPush('%@')",jsonString]];
-//        
-//    });
-//    
-//}
 
+/**
+ *  监听到通知时调用的方法
+ *
+ *  @param notification 通知的处理
+ */
 - (void)networkDidReceiveNotification:(NSNotification *)notification{
-    notificationMessage = [notification object];
-    NSLog(@"networkDidReceiveNotification:%@",notification);
-    //here add your  ode
     NSDictionary *object = [notification object];
+    NSDictionary *extra_dic = nil;//extra的内容
+    NSString *type = nil;
+    //解析extra的jason字符串
+    NSString *jsonString = [object objectForKey:@"extra"];
+    if (jsonString != nil) {
+        NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+        NSError *err;
+        extra_dic = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                            options:NSJSONReadingMutableContainers
+                                                              error:&err];
+        NSLog(@"转换后的extra：%@",extra_dic);
+        type = [extra_dic objectForKey:@"type"];
+        if(err) {
+            NSLog(@"extra解析失败：%@",err);
+        }
+    }
+    
     NSString* alertStr = nil;
     if (callbackId) {
         NSLog(@"%@",callbackId);
     }
-//    NSError  *error;
-//    NSData   *jsonData   = [NSJSONSerialization dataWithJSONObject:object options:0 error:&error];
-//    NSString *jsonString = [[NSString alloc]initWithData:jsonData encoding:NSUTF8StringEncoding];
     alertStr = [[object objectForKey:@"aps"]objectForKey:@"alert"];
-    if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive && [alertStr isEqualToString:@"你的账号已在别处登陆，如不是本人操作，请确认此消息"]){
+    //下线通知：你的账号已在别处登陆，如不是本人操作，请确认此消息
+    if ([UIApplication sharedApplication].applicationState == UIApplicationStateActive && [[extra_dic objectForKey:@"type"] isEqualToString:@"promit"] && alertStr != nil){
         [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
         UIAlertView*alertView = [[UIAlertView alloc]initWithTitle:@"下线通知" message:alertStr delegate:self cancelButtonTitle:@"退出" otherButtonTitles:@"重新登陆", nil];
+        alertView.tag = 0;
         [alertView show];
-        NSLog(@"state%ld",(long)[UIApplication sharedApplication].applicationState);
+        
     }else{
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
-            NSMutableDictionary *pushClick = [NSMutableDictionary dictionary];
-            NSString *classType = [[notificationMessage objectForKey:@"extra" ] objectForKey:@"classtype"];
-            NSString *detailId = [[notificationMessage objectForKey:@"extra" ] objectForKey:@"id"];
+        //点击状态栏上的通知
+//        dispatch_async(dispatch_get_main_queue(), ^{
+//            
+//        });
+        [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
+        NSMutableDictionary *pushClick = [NSMutableDictionary dictionary];
+        //如果点击的是下线通知
+        if ([[extra_dic objectForKey:@"type"] isEqualToString:@"promit"]) {
+            UIAlertView*alertView = [[UIAlertView alloc]initWithTitle:@"下线通知" message:alertStr delegate:self cancelButtonTitle:@"退出" otherButtonTitles:@"重新登陆", nil];
+            alertView.tag = 1;
+            [alertView show];
+        }else{
+            NSString *classType = [extra_dic objectForKey:@"classtype"];
+            NSString *detailId = [extra_dic objectForKey:@"id"];
             [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
             [pushClick setValue:@"notifyclick" forKey:@"type"];
             [pushClick setValue:classType forKey:@"classType"];
             [pushClick setValue:detailId forKey:@"detailId"];
-            NSLog(@"pushClick:%@",pushClick);
+            
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:pushClick options:NSJSONWritingPrettyPrinted error:nil];
             NSString *stringClick = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             [self successWithMessage:[NSString stringWithFormat:@"%@",stringClick]];
-        });
+            
+        }
+
     }
-    
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    NSLog(@"buttonIndex:%ld", (long)buttonIndex);
-    if (buttonIndex == 1) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-
-            NSMutableDictionary *reloginClick = [NSMutableDictionary dictionary];
+    //下线通知alert的tag值为0或者1
+    if (alertView.tag == 0 || alertView.tag ==1) {
+        NSLog(@"buttonIndex:%ld", (long)buttonIndex);
+        //重新登陆
+        if (buttonIndex == 1) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                NSMutableDictionary *reloginClick = [NSMutableDictionary dictionary];
+                [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
+                [reloginClick setValue:@"relogin" forKey:@"type"];
+                NSLog(@"reloginClick:%@",reloginClick);
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reloginClick options:NSJSONWritingPrettyPrinted error:nil];
+                NSString *stringClick = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+                [self successWithMessage:[NSString stringWithFormat:@"%@",stringClick]];
+            });
+        }else{
+            //退出
+            NSMutableDictionary *exitClick = [NSMutableDictionary dictionary];
             [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
-            [reloginClick setValue:@"relogin" forKey:@"type"];
-            NSLog(@"reloginClick:%@",reloginClick);
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reloginClick options:NSJSONWritingPrettyPrinted error:nil];
+            [exitClick setValue:@"exit" forKey:@"type"];
+            NSLog(@"exitClick:%@",exitClick);
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:exitClick options:NSJSONWritingPrettyPrinted error:nil];
             NSString *stringClick = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             [self successWithMessage:[NSString stringWithFormat:@"%@",stringClick]];
-        });
+        }
     }
+    
 }
 //注销推送
 - (void)unregistePush:(CDVInvokedUrlCommand*)command;
@@ -117,7 +136,12 @@
     [[UIApplication sharedApplication] unregisterForRemoteNotifications];
     [self successWithMessage:@"unregistered"];
 }
-//注册推送
+
+/**
+ *  注册推送
+ *
+ *  @param command 注册推送并将结果返回给js
+ */
 - (void)registePush:(CDVInvokedUrlCommand*)command;
 {
     
@@ -155,15 +179,8 @@
     //NSError *parseError = nil;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:resultToken options:NSJSONWritingPrettyPrinted error:nil];
     NSString *resultString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    
     NSLog(@"注册通知后返回给js的字符串：%@",resultString);
-//    //获取当前app版本号version
-//    NSString* version = [NSString stringWithFormat:@"%@(%@)", [[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleShortVersionString"] ,[[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString*)kCFBundleVersionKey]];
-   // msg = '{"type":"promit","msg":"你的账号已在别处登陆，如不是本人操作，请确认此消息"}';
     [self successWithMessage:[NSString stringWithFormat:@"%@",resultString]];
-//    NSString *str = [self.webview stringByEvaluatingJavaScriptFromString:@"log_in()"];
-//    NSLog(@"JS返回值：%@",str);
-
 }
 
 -(void)successWithMessage:(NSString *)message
@@ -257,3 +274,4 @@
 }
 
 @end
+
