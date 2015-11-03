@@ -31,7 +31,7 @@
 //判断返回状态
 - (void) connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-    int status = [httpResponse statusCode];
+    NSInteger status = [httpResponse statusCode];
     if(status == 200){
         NSLog(@"succ");
     }else{
