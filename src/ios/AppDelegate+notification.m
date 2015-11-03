@@ -56,7 +56,10 @@ static char launchNotificationKey;
 {
     NSLog(@"createNotificationChecker");
     if (notification) {
-        NSLog(@"notification:%@",notification);
+        NSDictionary *launchOptions = [notification userInfo];
+        if ([launchOptions objectForKey:@"UIApplicationLaunchOptionsRemoteNotificationKey"]){
+            [UIApplication sharedApplication].applicationIconBadgeNumber -=1;
+        }
     }
 
 }
